@@ -1,0 +1,1 @@
+CREATE TABLE news_articles (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), source_id UUID NOT NULL REFERENCES news_sources(id) ON DELETE CASCADE, title TEXT NOT NULL, url TEXT NOT NULL, summary TEXT, image_url TEXT, category TEXT NOT NULL DEFAULT 'Geral', published_at TIMESTAMPTZ, fetched_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), UNIQUE(source_id, url))

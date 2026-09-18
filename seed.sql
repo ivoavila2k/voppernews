@@ -1,0 +1,1 @@
+INSERT INTO news_sources (name,country,feed_url,category) SELECT 'G1','Brasil','https://g1.globo.com/rss/g1/','Brasil' WHERE NOT EXISTS (SELECT 1 FROM news_sources WHERE name='G1')
