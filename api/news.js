@@ -4,8 +4,7 @@ export const access = "public";
 export const methods = ["GET"];
 
 const CATEGORIES = new Set(["Todas", "Brasil", "Mundo", "Inter", "Grêmio"]);
-const cache = new Map();
-const CACHE_MS = 300_000;
+// Baseline V45: sem cache de resposta local.
 
 export default async function (req, res) {
   const rawLimit = Number(req.query?.limit || 60);
@@ -16,13 +15,7 @@ export default async function (req, res) {
     return res.status(400).json({ error: "Categoria inválida" });
   }
 
-  const key = category + ":" + limit;
-  const fresh = String(req.query?.fresh || "") === "1";
-  const hit = cache.get(key);
-  if (!fresh && hit && Date.now() - hit.at < CACHE_MS) {
-    res.setHeader("Cache-Control", "public, max-age=300, stale-while-revalidate=600");
-    return res.json(hit.data);
-  }
+  // Baseline V45: consulta o banco em cada chamada.
 
   let sql = "SELECT a.title,a.url,a.summary,a.image_url,a.category,a.published_at,s.name AS source,s.country FROM news_articles a JOIN news_sources s ON s.id=a.source_id ";
   const params = [];
@@ -36,8 +29,6 @@ export default async function (req, res) {
   params.push(limit);
 
   const { rows } = await db.query(sql, params);
-  cache.set(key, { at: Date.now(), data: rows });
-
-  res.setHeader("Cache-Control", "public, max-age=30, stale-while-revalidate=60");
+  // Baseline V45: resposta sem cache HTTP adicional.
   res.json(rows);
 }

@@ -1,8 +1,7 @@
 export const access = "public";
 export const methods = ["GET"];
 
-const CACHE_MS = 45 * 60 * 1000;
-let cache = { at: 0, data: [] };
+// Baseline V45: cache local removido.
 
 const FEEDS = [
   { name: "UOL Esporte", channel: "UC3KHYFWeB0WimMBfm3NEahQ" },
@@ -36,10 +35,7 @@ function parseFeed(xml, source) {
 }
 
 export default async function (req, res) {
-  if (cache.data.length && Date.now() - cache.at < CACHE_MS) {
-    res.setHeader("Cache-Control", "public, max-age=2700, stale-while-revalidate=5400");
-    return res.json({ source: "YouTube RSS", updatedAt: new Date(cache.at).toISOString(), videos: cache.data });
-  }
+  // Baseline V45: consulta os feeds em cada chamada.
 
   try {
     const settled = await Promise.allSettled(FEEDS.map(async feed => {
@@ -68,9 +64,8 @@ export default async function (req, res) {
       .sort((a,b) => new Date(b.publishedAt) - new Date(a.publishedAt))
       .slice(0, 8);
 
-    cache = { at: Date.now(), data: videos };
-    res.setHeader("Cache-Control", "public, max-age=600, stale-while-revalidate=1200");
-    return res.json({ source: "YouTube RSS", updatedAt: new Date(cache.at).toISOString(), videos });
+    // Baseline V45: sem cache HTTP adicional.
+    return res.json({ source: "YouTube RSS", updatedAt: new Date().toISOString(), videos });
   } catch (error) {
     return res.status(502).json({
       error: "Não foi possível atualizar os vídeos agora.",

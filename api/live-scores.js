@@ -1,8 +1,7 @@
 export const access = "public";
 export const methods = ["GET"];
 
-const cache = { at: 0, data: null };
-const CACHE_MS = 30_000;
+// Baseline V45: cache local removido.
 
 function normalizeEvent(event) {
   const comp = event?.competitions?.[0];
@@ -34,10 +33,7 @@ function normalizeEvent(event) {
 }
 
 export default async function (req, res) {
-  if (cache.data && Date.now() - cache.at < CACHE_MS) {
-    res.setHeader("Cache-Control", "public, max-age=30, stale-while-revalidate=60");
-    return res.json(cache.data);
-  }
+  // Baseline V45: consulta a ESPN em cada chamada.
 
   try {
     const url = "https://site.api.espn.com/apis/site/v2/sports/soccer/bra.1/scoreboard";
@@ -51,9 +47,7 @@ export default async function (req, res) {
       live: events.filter(e => e.state === "in"),
       today: events
     };
-    cache.at = Date.now();
-    cache.data = data;
-    res.setHeader("Cache-Control", "public, max-age=15, stale-while-revalidate=30");
+    // Baseline V45: sem cache HTTP adicional.
     return res.json(data);
   } catch (error) {
     return res.status(502).json({ error: "Não foi possível consultar o placar ao vivo.", detail: String(error?.message || error) });

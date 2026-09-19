@@ -1,7 +1,7 @@
 export const access="public"; export const methods=["GET"];
-const cache={at:0,data:null};
+// Baseline V45: cache local removido.
 export default async function(req,res){
- if(cache.data&&Date.now()-cache.at<900000)return res.json(cache.data);
+ // Baseline V45: consulta a ESPN em cada chamada.
  try{
   const r=await fetch("https://site.api.espn.com/apis/v2/sports/soccer/bra.1/standings",{headers:{"User-Agent":"VopperNews/1.0"}});
   if(!r.ok)throw new Error("ESPN HTTP "+r.status);
@@ -14,6 +14,6 @@ export default async function(req,res){
   }).filter(x=>x.name).sort((a,b)=>a.rank-b.rank);
   if(teams.length<15)throw new Error("Classificação incompleta");
   const data={source:"ESPN",updatedAt:new Date().toISOString(),teams};
-  cache.at=Date.now();cache.data=data;res.setHeader("Cache-Control","public,max-age=900,stale-while-revalidate=1800");res.json(data);
+  res.json(data);
  }catch(e){res.status(502).json({error:"Não foi possível atualizar a classificação.",detail:String(e?.message||e)})}
 }
